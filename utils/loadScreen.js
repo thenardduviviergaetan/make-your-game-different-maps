@@ -1,6 +1,6 @@
-let w = 0
 let bool1 = false
 let bool = false
+let Hz
 const loadScreen = (Pause)=> {
     
     let loadAll = document.createElement('div')
@@ -9,29 +9,69 @@ const loadScreen = (Pause)=> {
     load.id = 'load'
     load.style.width = `100%`
     load.style.height = `100%`
-    let text = document.createElement('p')
-    text.textContent = 'Reloading nuclear weapons' //déclassification des dossier de la Zone51 TODO: faire un fichier txt pour le lire
-    text.style.fontWeight= 'bold'
-    let bar = document.createElement('div')
-    bar.id = 'bar'
-    let loading = document.createElement('div')
-    loading.id = 'loading'
+
+    let intro = document.createElement('div')
+    intro.id= 'intro'
+    let prompt = document.createElement('p')
+    prompt.id = 'prompt'
+    prompt.innerHTML = 'Hello almighty fighter ! We need your help to eradicate those aliens ! They want to destroy our universe by all needs... Hope you\'ll be brave enough to kill\'em all ! Good luck comrad. '
+    prompt.style.display = 'none'
+    setTimeout(() => {
+        prompt.style.display = ''
+    },1500);
+    let asteroid = document.createElement('img')
+    asteroid.id = "asteroid"
+    asteroid.src = '../assets/asteroid.png'
+
+
+    let fpsContainer = document.createElement('div') 
+    fpsContainer.id = 'contFPS'
+
+    let txt = document.createElement('p')
+    txt.textContent = 'Choose your refresh rate before playing !'
+    txt.id = 'txt'
+    let fps1 = document.createElement('button')
+    let fps2 = document.createElement('button')
+    let fps3 = document.createElement('button')
+    fps1.classList.add('fps')
+    fps1.textContent = '60 Hz'
+    fps1.value = '60'
+    fps2.classList.add('fps')
+    fps2.textContent = '120-165 Hz'
+    fps2.value = '144'
+    fps3.classList.add('fps')
+    fps3.textContent = '240 Hz'
+    fps3.value = '240'
+    fps1.addEventListener('click', ()=> {
+        Hz = Number(fps1.value)
+        bool1 = true
+        play.disabled = false
+    })
+    fps2.addEventListener('click', ()=> {
+        Hz = Number(fps2.value)
+        bool1 = true
+        play.disabled = false
+    })
+    fps3.addEventListener('click', ()=> {
+        Hz = Number(fps3.value)
+        bool1 = true
+        play.disabled = false
+    })
+
+
     let play = document.createElement('button')
     play.id='play'
     play.textContent = 'Play !'
-    play.style.display = 'none'
-    let check = setInterval(() => {
-        w+=200
-        if (w == 800) {
-            loading.style.width = `${w}px`
-            play.style.display = ''
-            bool1 = true
-            clearInterval(check)
-        }
-    }, 600);
-    bar.appendChild(loading)
-    load.appendChild(text)
-    load.appendChild(bar)
+    play.disabled = true
+
+    intro.appendChild(asteroid)
+    intro.appendChild(prompt)
+    load.appendChild(intro)
+    fpsContainer.appendChild(txt)
+    fpsContainer.appendChild(fps1)
+    fpsContainer.appendChild(fps2)
+    fpsContainer.appendChild(fps3)
+    load.appendChild(fpsContainer)
     load.appendChild(play)
     loadAll.appendChild(load)
     document.body.appendChild(loadAll)
@@ -48,4 +88,4 @@ let i = setInterval(() => {
     }
 }, 100);
 
-export {loadScreen,bool}
+export {loadScreen,bool,Hz}

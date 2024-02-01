@@ -1,10 +1,10 @@
 import { movements } from "../main.js";
 import { randomize } from "./utilsFunc.js";
-// import { Map } from "./texture.js";
 const size = 32;
 let nbLine 
 let hp = 3
 let tabProjectil = new Array()
+let poinpoinpoin = new Audio('../assets/death.mp3')
 /**
  * Class Ennemy is all the infos about each invader and boss
  * @param {number} x - X coordinates of each invader
@@ -45,7 +45,7 @@ class Ennemy {
  * @returns {Class} - All information about the wave gathered in a class
  */
 export class Wave {
-    constructor (nbline,nbinvader,boss){
+    constructor (nbline,nbinvader,ifboss){
         this.nbline = nbline
         nbLine = nbline
         this.nbinvader = nbinvader
@@ -59,18 +59,20 @@ export class Wave {
         this.HTML.style.top =  this.posy+"px";
         this.HTML.style.transform = `translateX(${this.posx}px)`
         let index = 0;
-        this.boss = boss;
+        this.boss = ifboss;
         this.move = true
 
-        /** set bosses information if the @param {boolean} boss is set to true  */  
-        if (this.boss === true) {
-            
-            index = 4;
-            nbline += 4;
-            let boss = new Ennemy((nbinvader/2-2)*size,0*size,4,"invader","boss");
+        /**set bosses information if the @param {boolean} boss is set to true*/
+            index = 10;
+            nbline += 10;
+            let boss = new Ennemy((nbinvader/2-5)*size,0,10,"invader","boss");
+            boss.texture.src = '../assets/sprite/BOSS.png'
             this.legion.push(boss);
-            this.HTML.appendChild(boss.HTML);
-        }
+            if (this.boss === true) {
+                this.HTML.appendChild(boss.HTML);
+            }else{
+                this.HTML.style.top =  -10*size+"px";
+            }
         // handles the storage of each line of invaders in an array named legion
         for (index;index < nbline;index++) {
             let line = new(Array);
@@ -87,20 +89,55 @@ export class Wave {
         }
     }
 
+    
+/**
+ * It handles the 'blink' animation when the boss is hit
+ * @param {HTMLElement} html - the html element ot make blink
+ */
+    blink(html) {
+        html.style.animation = '3s blink ease-in-out'
+        setTimeout(() => {
+            html.classList.toggle('god')
+            html.style.animation = ''
+        }, 3000);
+    }
+
     /**
-     * Handles the 'tick' of the entire legion across the screen, once it has reached the border of the screen,
-     * it goes down a certain number of pixels and continue its route until it reaches the dead line, then its Game Over
-    */
+     * Some initialization for performance and layout optimization
+     */
 
     overinit(){
         let over = document.createElement('img')
             over.src = './assets/game-over.png'
             over.id = 'over'
             over.style.opacity = '0%'
+            over.style.willChange = 'opacity'
             document.body.appendChild(over)
+            let overPrompt = document.createElement('div')
+            overPrompt.id = 'gameOver'
+            let  overPromptP = document.createElement('p')
+            overPromptP.id = 'gameOverP'
+            overPromptP.textContent = "You FAILED ! You're not worthy of our respect... GO BACK TO HEADQUARTERS !"
+            overPrompt.style.willChange = 'opacity'
+            overPrompt.style.opacity = '0%'
+            overPrompt.appendChild(overPromptP)
+            document.body.appendChild(overPrompt)
     }
-    
-   //TODO: faire un valeur de descente et de déplacement dynamique
+    bossInit(){
+        let bprompt = document.createElement('p')
+        bprompt.id = 'PROMPT'
+        bprompt.textContent = 'WAIT ! Something is coming...'
+        bprompt.style.willChange = 'opacity'
+        bprompt.style.opacity = '0%'
+        document.getElementById('BOSS_PROMPT').appendChild(bprompt)
+    }
+
+
+    /**
+     * Handles the 'tick' of the entire legion across the screen, once it has reached the border of the screen,
+     * it goes down a certain number of pixels and continue its route until it reaches the dead line, then its Game Over
+    */
+
    tick(){
         if (!this.move) {
             return
@@ -120,14 +157,17 @@ export class Wave {
         // if (this.posy + size >= 500 || this.boss && this.posy + size*4 >= 500|| hp == 0 ){
         if (bottom >= shipborder.top || hp == 0 ){
             let over = document.getElementById('over')
+            over.style.animation = '1s ease-in-out infinite over'
             over.style.opacity = '100%'
+            poinpoinpoin.load()
+            poinpoinpoin.play()
             return true
         }
         // if (this.posx+2*size >= window.innerWidth-(this.nbinvader-2)*size || this.posx < document.getElementById('score').getBoundingClientRect().right){
         // if (this.HTML.getBoundingClientRect().right >= window.innerWidth-(this.nbinvader-2)*size || this.HTML.getBoundingClientRect().left < document.getElementById('score').getBoundingClientRect().right){
         if (right >= window.innerWidth || left < document.getElementById('score').getBoundingClientRect().right){
             this.right = !this.right
-            this.posy += 10
+            this.posy += 20
         }
         this.posx += this.right ? movements[1] : -movements[1]
         this.HTML.style.transform = `translate(${this.posx}px,${this.posy}px)`
@@ -151,9 +191,15 @@ export class Wave {
         });
 
     }
-    reset(){
+
+    /**
+     * It reset the wave by re-using the memory to avoid memory jank, optimization at its finest
+     * @param {Boolean} isboss - whether or not there is a boss in the wave
+     */
+    reset(isboss){
+        isboss = (isboss === undefined || !isboss) ? false : true
         if (hp < 3) {
-            hp++
+            hp+=2
         }
         this.posx =  document.getElementById('score').getBoundingClientRect().right;
         this.posy = 0
@@ -162,7 +208,7 @@ export class Wave {
             this.HTML.firstChild.remove()
         }
         this.legion.forEach( element => {
-            index++
+            index++;
             if (Array.isArray(element)){
                 let htmlline = document.createElement("div");
                 htmlline.classList.add("line");
@@ -170,10 +216,13 @@ export class Wave {
                     invader.texture.src = randomize();
                     htmlline.appendChild(invader.HTML);
                 })
-                this.HTML.appendChild(htmlline)
+                this.HTML.appendChild(htmlline);
+            }else if (isboss){
+                element.texture.src = '../assets/sprite/BOSS.png';
+                this.HTML.style.top =  0+"px";
+                this.HTML.appendChild(element.HTML);
             }else{
-                element.texture.src = randomize();
-                this.HTML.appendChild(element.HTML)
+                this.HTML.style.top =  -10*size+"px";
             }
         })
     }
@@ -185,8 +234,8 @@ export class Wave {
  * @param {Class} posy - The shooter, where the projectile will be shot 
  * @returns {HTMLDivElement} - The projectile foramtted as a div
  */
-class InvaderProjectile {
-    constructor(posx,posy){
+class InvaderProjectile{
+     constructor (posx,posy){
         this.x = posx+size/2
         this.y = posy - (size/2)*nbLine
         this.HTML = document.createElement('div')
@@ -213,29 +262,7 @@ class InvaderProjectile {
             ship.classList.toggle('god')
             hp--
             this.HTML.remove()
-            ship.style.opacity = '0%'
-            setTimeout(() => {
-                ship.style.opacity = '100%'
-                    setTimeout(() => {
-                        ship.style.opacity = '0%'
-                            setTimeout(() => {
-                            ship.style.opacity = '100%'
-                            setTimeout(() => {
-                                ship.style.opacity = '0%'
-                                setTimeout(() => {
-                                    ship.style.opacity = '100%'
-                                    setTimeout(() => {
-                                        ship.style.opacity = '0%'
-                                        setTimeout(() => {
-                                            ship.style.opacity = '100%'
-                                                ship.classList.toggle('god')
-                                        }, 250);
-                                    }, 250);
-                                }, 250);
-                            }, 250);
-                        }, 250);
-                    }, 250);
-            }, 250);
+            new Wave(0,0,0,0).blink(ship)
             return true
         }
     }

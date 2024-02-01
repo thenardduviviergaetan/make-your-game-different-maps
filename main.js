@@ -1,62 +1,55 @@
 import {Ship,Projectile,score} from "./utils/ship.js";
 import { Wave } from "./utils/enemies.js";
-import { menuInit} from "./utils/utilsFunc.js";
-import { loadScreen,bool} from "./utils/loadScreen.js";
-import { getScreenRefreshRate } from "./utils/requestHz.js";
-import { Map } from "./utils/map.js";
-//TODO: FAIRE DES BONUS DE RAPID FIRE (on rajoute des shoot()) et rapid movement on rajoute des moveship() ET UN KONAMI CODE
-//TODO: mettre 3 vies
+import { menuInit, throttle} from "./utils/utilsFunc.js";
+import { loadScreen,bool,Hz} from "./utils/loadScreen.js";
+import { Map } from "./utils/map.js"
 //** Initialization of all the global variables */
 let Pause = false
 let fps = false
 let rightPressed,leftPressed
 let movements = []
 let waveNb = 1
-let background = new Map("./assets/sprite/background/tiles_space.png")
 let ship = new Ship
-let wave = new Wave(1,4,true)
+let background = new Map('./assets/sprite/background/tiles_space.png')
+let wave = new Wave(1,10,false) // need to be more or equal to boss size
 const Port = "5500"
 let audio = new Audio('./assets/music.mp3')
-audio.volume = 0.5
+audio.volume =0.5
 let shotSound = new Audio('./assets/shoot.wav')
 shotSound.volume = 0.5
 let r = new Audio('./assets/boom.mp3')
+r.volume = 1
 
-
-const hertzChecker =  ()=> {
-    let movementShip,movementWave,ennemyShot
-    getScreenRefreshRate(function(Hz){
-        if (Hz >= 50 && Hz <= 60) {
-            setTimeout(() => {
+const hertzChecker =  (Hz)=> {
+    let movementShip,movementWave,ennemyShot,movementShot
+        if (Hz == 60) {
                 movementShip = 7
                 movementWave = 2
                 ennemyShot = 3
-            }, 250);
-        } else if (Hz >= 230 && Hz <= 240) {
-            setTimeout(() => {
+                movementShot = 7
+        } else if (Hz == 240) {
                 movementShip = 1.5
                 movementWave = 0.8
                 ennemyShot = 0.75
-            }, 250);
-        } else if (Hz >= 118 && Hz <= 145){
-            setTimeout(() => {
+                movementShot = 1.5
+        } else if (Hz == 144){
                 movementShip = 3
                 movementWave = 1.2
                 ennemyShot = 1.5
-            }, 250);
+                movementShot = 3
         }
-   },true)
-    let int = setInterval(() => {
-        if (movementShip !== undefined && movementWave !== undefined &&movementShip !== '' && movementWave !== '' ) {
-            movements.push(movementShip)
-            movements.push(movementWave)
-            movements.push(ennemyShot)
-            fps = true
-            clearInterval(int)
-        }
-    }, 1);
+        let int = setInterval(() => {
+            if (movementShip !== undefined && movementWave !== undefined &&movementShip !== '' && movementWave !== '' ) {
+                clearInterval(int)
+                movements.push(movementShip)
+                movements.push(movementWave)
+                movements.push(ennemyShot)
+                movements.push(movementShot)
+                fps = true
+            }
+        },1);
 }
-hertzChecker()
+
 Pause = loadScreen(Pause)
 
 /**
@@ -65,7 +58,7 @@ Pause = loadScreen(Pause)
 
 let game = document.getElementById('game')
 game.appendChild(background.HTML)
-document.body.appendChild(wave.HTML)
+game.appendChild(wave.HTML)
 
 /**The initialization of the moving ship */
 await ship.initShip()
@@ -150,7 +143,6 @@ const timer = ()=> {
     }, 10);
 }
 timer()
-//TODO: POUR LIMITER RENDERING ET PAINTING document.createDocumentFragment()
 /**
  * Handles the 'Pause' functionnality where there is a 'Resume' and 'Restart' choices
  */
@@ -181,45 +173,70 @@ const pauseMenu = ()=> {
         if (document.getElementById('menu') !== null)document.getElementById('menu').style.opacity = '0%'
     }
 }
-
+wave.bossInit()
+wave.overinit()
 /** 
  * Handles the launch of the entire program, with the 60 fps functionnality without any framerate dropping 
 */
-wave.overinit()
 function Game(){
     // if this is a game over
     if (wave.tick()){
+        audio.pause()
+       let overPrompt =  document.getElementById('gameOver')
+       let overPromptP =  document.getElementById('gameOverP')
+       overPrompt.style.animation = '2s fade ease-in'
+       overPrompt.style.opacity = '100%'
+        overPromptP.style.animation = ' 4s typing1 ease-in'
         Pause = true
         pauseMenu()
         document.getElementById('resume').style.opacity = '0%'
     }
-    
     let invaders = document.querySelectorAll('.invader')
-    if (invaders.length == 0){
+     
+    if (waveNb%2 != 0 && invaders.length == 0 && Pause == false) {
+        waveNb++
+        Pause = true
+        movements[0]+=0.2
+        movements[1]+=1
+        movements[2]+=1
+        movements[3]+=0.5
+        document.getElementById('PROMPT').style.animation = 'typing 3s steps(29)  normal both'
+        document.getElementById('PROMPT').style.opacity = '100%'
+        throttle(setTimeout(() => {
+            document.getElementById('PROMPT').style.animation = ''
+            document.getElementById('PROMPT').style.opacity = '0%'
+            Pause = false
+            wave.reset(true)
+            background.next()
+        }, 3500),4000,true)
+        
+    }else if (invaders.length == 0 && waveNb%2 == 0 && Pause == false){
+        movements[0]+=0.2
+        movements[1]+=1
+        movements[2]+=1
+        movements[3]+=0.5
         waveNb++
         wave.reset()
-        background.Next();
-        // wave = new Wave(5,14,true)
-        // game.removeChild(game.firstChild)
-        // game.appendChild(wave.HTML)
+        background.next()
     }
     //for testing only
     for (let rep = 0; rep < 1; rep++) bullet.shoot();
     for (let rep = 0; rep < 1; rep++) moveShip()
     requestAnimationFrame(Game)
 }
-//TODO: remet moveship, hp counter over
-
 let loaded = setInterval(() => {
     if (bool){
+        hertzChecker(Hz)
         if (fps){
+            clearInterval(loaded)
             audio.loop = true
                     audio.volume =0.5
                     audio.play()
+                    shotSound.play()
                     Pause = !Pause
                     if (document.getElementById('load') != null) document.getElementById('load').remove()
                     Game()
-            clearInterval(loaded)}
+        }
         }
 }, 100);
 
@@ -231,6 +248,7 @@ document.addEventListener('keydown',(e) => {
     if (e.keyCode === k[n++]) {
         if (n === k.length) {
             audio.pause()
+            
             r.play()
             n = 0;
             return false;

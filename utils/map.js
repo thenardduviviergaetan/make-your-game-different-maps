@@ -78,7 +78,7 @@ export class Map {
         this.HTML.style.height = window.innerHeight;
         this.initMap()
     }
-    Next(){
+    next(){
         this.Level = (this.Level+1)%TileMapindex.length;
         this.map = TileMapindex[this.Level];
         this.draw();

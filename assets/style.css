@@ -87,7 +87,6 @@ body{
     z-index: 100;
     border-radius: 20px;
     width: 30%;
-    animation: 1s ease-in-out infinite over;
 }
 
 @keyframes over {
@@ -123,36 +122,62 @@ body{
     top: 0;
     z-index: 1000;
 }
-#bar{
-    display: flex;
-    align-items: center;
-    background-color: black;
-    width: 600px;
-    height:30px;
-}
-#loading{
-    background-color: rgb(9, 186, 9);
-    height:20px;
-    position: inherit;
-    animation: 2.4s ease-in lo;
+.invader{
+    will-change: opacity,transform;
 }
 
-@keyframes lo {
-    from{
-        width: 0px;
-    }
-    25%{
-        width: 200px;
-    }
-    50% {
-        width: 400px;
-    }
-    75% {
-        width: 600px;
+#intro{
+    width: 40%;
+    height: 30%;
+    background-image: url(./invaders.png);
+    background-position: 40%;
+    background-repeat: no-repeat;
+    border-radius: 12px;
+    animation: 1s ease-in intro;
+}
 
+@keyframes intro {
+    from {
+        width: 0%;
     }
     to {
-        width: 800px;
+        width: 40%;
+    }
+}
+
+#asteroid{
+    width: 10%;
+    z-index: 0;
+    margin: 1%;
+    top: 30%;
+    animation: 2s rotating linear infinite;
+}
+@keyframes rotating {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+#prompt {
+    margin-bottom: 20%;
+    text-align: center;
+    color: white;
+   font-size:large;
+   font-family: 'Courier New', Courier, monospace;
+   margin: 1%;
+   animation: 3s fade ease-in;
+}
+@keyframes fade {
+    from {
+        opacity: 0%;
+    }
+    60%{
+        opacity: 50%;
+    }
+    to {
+        opacity: 100%;
     }
 }
 
@@ -160,10 +185,119 @@ body{
     margin-top: 10%;
     width: 12%;
     height: 3%;
+    background-color: rgb(92, 92, 209);
+    border-radius: 100px 200px;
+    width: 500px;
+    height: 150px;
+    transition: 1s;
+    animation: 3s fade ease-in;
+}
+#play:hover  {
+    box-shadow: 0px 0px 30px rgb(254, 124, 38);
+    transition:box-shadow 300ms;
+}
+
+#contFPS{
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
+    margin-top: 2%;
+    align-items: center;
+}
+
+#txt {
+    color: black;
+    font-weight: bold;
+}
+.fps {
+    width: 200px;
+    border-radius: 12px;
+    background-color: rgb(92, 92, 209);
+}
+
+#BOSS_PROMPT{
+    display: flex;
+    width: 40%;
+    height: 10%;
+    position: absolute;
+    z-index: 20000;
+    left: 30%;
+    top: 65%;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+}
+
+#PROMPT{
+    white-space: nowrap;
+    width: 29ch;
+    color: white;
+    border-right: .15em solid white;
+    overflow: hidden;
+}
+
+@keyframes typing {
+    from { width: 0 }
+    to { width: 25ch }
+  }
+
+  @keyframes blink {
+    from { border-color: transparent }
+    to { border-color: white; }
+  }
+
+
+#gameOver{
+    display: flex;
+    text-align: center;
+    align-items: center;
+    position: absolute;
+    width: 40%;
+    height:25%;
+    background-color: rgba(117, 198, 242, 0.263);
+    align-self: center;
+    bottom: 2%;
+    word-break: break-all;
+    border-radius: 12px;
+}
+
+#gameOverP{
+    white-space: nowrap;
+    width: 78ch;
+    color: white;
+    overflow: hidden;
+    margin:5%;
+}
+
+@keyframes typing1 {
+    from { width: 0 }
+    to { width: 78ch }
+  }
+
+
+
+@keyframes blink{
+    from{
+        opacity:0%
+    }
+    20%{
+        opacity: 100%;
+    }
+    40%{
+        opacity: 0%;
+    }
+    60%{
+        opacity: 100%;
+    }
+    80%{
+        opacity: 0%;
+    }
+    to{
+        opacity: 100%;
+    }
 }
 
 .backline{
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
 }
